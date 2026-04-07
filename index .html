@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIIIWJASTEB Payment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { background-color: #0f172a; color: #f1f5f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .app-container { background-color: #1e293b; max-width: 480px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; box-shadow: 0 0 40px rgba(0,0,0,0.5); position: relative; }
+        
+        .page { display: none; padding: 24px; flex-direction: column; min-height: 100vh; animation: slideUp 0.4s ease; }
+        .active { display: flex; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .plan-card { background-color: #334155; border-radius: 16px; padding: 18px; cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; }
+        .plan-card.selected { border-color: #6366f1; background-color: #1e1b4b; box-shadow: 0 0 20px rgba(99, 102, 241, 0.3); }
+        
+        .input-field { background-color: #334155; border: 2px solid transparent; color: white; border-radius: 14px; padding: 16px; width: 100%; outline: none; transition: 0.2s; }
+        .input-field:focus { border-color: #6366f1; background-color: #3d4b5f; }
+
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.95); z-index: 1000; flex-direction: column; justify-content: center; align-items: center; }
+        .loader { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #6366f1; border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .qris-section { background-color: rgba(30, 41, 59, 0.5); border: 1px dashed #475569; border-radius: 20px; padding: 20px; text-align: center; }
+        .qris-box { background-color: #fff; padding: 15px; border-radius: 20px; display: inline-block; transition: transform 0.2s; cursor: pointer; }
+        .qris-box:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <!-- Overlay Loading -->
+    <div id="overlay">
+        <div class="loader mb-4"></div>
+        <p class="text-white font-bold tracking-wider uppercase">Memproses Konfirmasi...</p>
+        <p class="text-indigo-400 text-[10px] mt-2 animate-pulse font-black uppercase">Harap Tunggu Sebentar</p>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- HALAMAN 1: FORM PEMBAYARAN -->
+        <div id="page-1" class="page active">
+            <div class="flex items-center gap-4 mb-10 mt-2">
+                <div class="bg-indigo-600 p-3.5 rounded-2xl shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-receipt text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-black text-white tracking-tight uppercase">KIIIWJASTEB</h1>
+                    <p class="text-indigo-400 text-[9px] font-black uppercase tracking-[0.2em]">Sistem Konfirmasi Bayar</p>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-indigo-400 text-[10px] font-black mb-2 uppercase tracking-widest">Nama / Key User</label>
+                <div class="relative">
+                    <input type="text" id="userName" placeholder="Masukkan Nama/Key" class="input-field pr-20 font-bold">
+                    <button onclick="copyText('userName')" class="absolute right-2 top-1.5 bg-slate-600 hover:bg-slate-500 text-white text-[9px] font-black px-4 py-2.5 rounded-lg uppercase transition">Salin</button>
+                </div>
+            </div>
+
+            <p class="text-white font-bold mb-4 text-sm">Pilih Paket Durasi:</p>
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <!-- LIST DURASI TERBARU SESUAI REQUEST -->
+                <div class="plan-card" onclick="pickItem(this, '1 JAM', '3.000')">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-1">Durasi</p>
+                    <p class="text-white font-black text-lg">1 JAM</p>
+                    <p class="text-indigo-400 font-bold mt-1 text-sm">Rp 3.000</p>
+                </div>
+                <div class="plan-card" onclick="pickItem(this, '2 JAM', '6.000')">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-1">Durasi</p>
+                    <p class="text-white font-black text-lg">2 JAM</p>
+                    <p class="text-indigo-400 font-bold mt-1 text-sm">Rp 6.000</p>
+                </div>
+                <div class="plan-card" onclick="pickItem(this, '3 JAM', '12.000')">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-1">Durasi</p>
+                    <p class="text-white font-black text-lg">3 JAM</p>
+                    <p class="text-indigo-400 font-bold mt-1 text-sm">Rp 12.000</p>
+                </div>
+                <div class="plan-card" onclick="pickItem(this, '4 JAM', '18.000')">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-1">Durasi</p>
+                    <p class="text-white font-black text-lg">4 JAM</p>
+                    <p class="text-indigo-400 font-bold mt-1 text-sm">Rp 18.000</p>
+                </div>
+                <div class="plan-card" onclick="pickItem(this, '5 JAM', '24.000')">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase mb-1">Durasi</p>
+                    <p class="text-white font-black text-lg">5 JAM</p>
+                    <p class="text-indigo-400 font-bold mt-1 text-sm">Rp 24.000</p>
+                </div>
+            </div>
+
+            <div class="qris-section mb-8">
+                <p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">METODE PEMBAYARAN QRIS</p>
+                <div class="qris-box shadow-xl mb-3" onclick="window.open('https://photos.app.goo.gl/Fx6T4kwXNkv3VvUQ8', '_blank')">
+                    <div class="w-32 h-32 flex flex-col items-center justify-center bg-slate-50 border-2 border-indigo-100 rounded-xl">
+                        <i class="fa-solid fa-qrcode text-5xl text-indigo-600 mb-1"></i>
+                        <span class="text-[8px] font-black text-indigo-900 uppercase">Klik Gambar</span>
+                    </div>
+                </div>
+                <p class="text-indigo-400 text-[10px] font-black uppercase animate-pulse">KETUK UNTUK MEMPERBESAR</p>
+            </div>
+
+            <div class="mb-10">
+                <label class="block text-slate-400 text-[10px] font-black mb-3 uppercase tracking-widest">Unggah Foto Bukti Transfer</label>
+                <div class="bg-slate-800 border-2 border-dashed border-slate-700 rounded-xl flex items-center p-2">
+                    <input type="file" id="proofFile" class="hidden" accept="image/*" onchange="updateFileName()">
+                    <button onclick="document.getElementById('proofFile').click()" class="bg-indigo-600 px-5 py-3 rounded-lg text-[10px] font-black text-white uppercase active:scale-95 transition">Pilih Foto Bukti</button>
+                    <span id="fileName" class="px-4 text-slate-500 text-xs truncate italic">Belum ada file dipilih</span>
+                </div>
+            </div>
+
+            <button onclick="processPayment()" class="w-full bg-indigo-600 hover:bg-indigo-500 py-5 rounded-2xl font-black text-white text-lg mt-auto mb-6 uppercase tracking-widest shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">
+                Konfirmasi Pembayaran
+            </button>
+        </div>
+
+        <!-- HALAMAN 2: BERHASIL -->
+        <div id="page-2" class="page items-center justify-center text-center">
+            <div class="bg-emerald-500 w-24 h-24 rounded-full flex items-center justify-center mb-8 shadow-2xl shadow-emerald-500/30 border-4 border-white/20">
+                <i class="fa-solid fa-check text-white text-5xl"></i>
+            </div>
+            <h1 class="text-3xl font-black text-white mb-2 uppercase tracking-tight">SIAP DIKIRIM!</h1>
+            <p class="text-slate-400 text-sm mb-1">Paket: <span id="res-plan" class="text-indigo-400 font-bold"></span></p>
+            <p class="text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-12 animate-pulse">Draft Pesan Sudah Siap</p>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-[2.5rem] w-full p-10 mb-8 shadow-inner">
+                <p class="text-slate-400 text-[10px] font-black uppercase mb-4 tracking-widest">Nama / Key</p>
+                <p id="res-name" class="text-white text-4xl font-black tracking-widest mb-10 uppercase truncate">USER</p>
+                <button onclick="copyText('res-name', true)" class="w-full bg-slate-700 hover:bg-slate-600 py-4 rounded-xl font-black text-slate-300 text-xs transition uppercase tracking-widest">Salin Nama Key</button>
+            </div>
+
+            <button onclick="sendToWA()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-2xl font-black text-sm mb-8 uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">
+                <i class="fa-brands fa-whatsapp text-2xl"></i> KIRIM KE WHATSAPP ADMIN
+            </button>
+
+            <button onclick="location.reload()" class="text-slate-500 text-[10px] font-black hover:text-indigo-400 transition uppercase tracking-widest flex items-center gap-2">
+                <i class="fa-solid fa-arrow-left"></i> Kembali ke Awal
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        let selectedData = { name: "", price: "" };
+        let waLink = "";
+        const ADMIN_NUMBER = "6283827384467";
+
+        function pickItem(el, name, price) {
+            document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedData = { name, price };
+        }
+
+        function updateFileName() {
+            const file = document.getElementById('proofFile').files[0];
+            const label = document.getElementById('fileName');
+            if(file) {
+                label.innerText = file.name;
+                label.classList.remove('text-slate-500');
+                label.classList.add('text-indigo-400', 'font-bold');
+            }
+        }
+
+        function copyText(id, isText = false) {
+            const val = isText ? document.getElementById(id).innerText : document.getElementById(id).value;
+            if(val) {
+                navigator.clipboard.writeText(val);
+                Swal.fire({ icon: 'success', title: 'Tersalin!', text: 'Berhasil menyalin ke clipboard', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: '#1e293b', color: '#fff' });
+            }
+        }
+
+        function sendToWA() {
+            if(waLink) window.open(waLink, '_blank');
+        }
+
+        function processPayment() {
+            const name = document.getElementById('userName').value.trim();
+            const fileInput = document.getElementById('proofFile');
+            const file = fileInput.files[0];
+
+            if(!name || !selectedData.name || !file) {
+                Swal.fire({ icon: 'warning', title: 'Data Kurang', text: 'Lengkapi Nama, Durasi, dan Pilih Foto Bukti!', background: '#1e293b', color: '#fff' });
+                return;
+            }
+
+            document.getElementById('overlay').style.display = 'flex';
+
+            // Simulasi proses delay
+            setTimeout(() => {
+                document.getElementById('res-plan').innerText = selectedData.name;
+                document.getElementById('res-name').innerText = name;
+                document.getElementById('page-1').classList.remove('active');
+                document.getElementById('page-2').classList.add('active');
+                document.getElementById('overlay').style.display = 'none';
+
+                // FORMAT PESAN WHATSAPP SESUAI REQUEST TERBARU
+                const message = `Halo Admin KIIIWJASTEB,\nSaya ingin konfirmasi pembayaran:\n\n👤 *Nama/Key:* ${name}\n⏱️ *Durasi:* ${selectedData.name}\n💰 *Harga:* Rp ${selectedData.price}\n\nJIKA SUDAH MENG TRANSFER? HARAP BACA!!\n📎 \`[ HARAP SERTAKAN BUKTI ULANG ]\`\n\nJika sudah proses akan segera di lakukan, harap tunggu admin kiiiw merespon`;
+                
+                waLink = `https://wa.me/${ADMIN_NUMBER}?text=${encodeURIComponent(message)}`;
+
+                setTimeout(() => {
+                    sendToWA();
+                }, 1500);
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
